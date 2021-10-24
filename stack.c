@@ -59,19 +59,14 @@ int StackError (stack* stk) {
 	stk->data--;
 	if ((stk->data[0] != canary) || (stk->data[stk->capacity + 1] != canary))
 		return DATA_INVASION;
-
-
 }
 
-// enum Errors {
-
-// };
 
 int main () {
 	stack stk;
 	StackConstruct (&stk);
 	// printf ("hash = %lld\n", stk.hash);
-	for (int i = 0; i < 20; i++) {
+	for (int i = 0; i < 100; i++) {
 		StackPush (&stk, i);
 		printf ("pushed %d\n", i);
 	}
@@ -138,9 +133,9 @@ void StackSizeUp (stack* stk) {
 	stk->capacity *= 2;
 	stk->data--;
 	printf ("realloc : %ld\n", (stk->capacity + 3) * sizeof (stk->data[0]));
-	stk->data = (type*) realloc (stk->data, (stk->capacity + 3) * sizeof (stk->data[0]));
+	stk->data = (type*) realloc (stk->data, (stk->capacity + 3) * sizeof (type));
 	//type hash = stk->data[capacity + 1]
-	wmemset (stk->data + stk->size + 1, poison, stk->capacity);
+	wmemset (stk->data + stk->size + 1, poison, stk->capacity - stk->size);
 	stk->data[stk->capacity + 2] = canary;
 	stk->data++;
 }
@@ -159,7 +154,7 @@ void StackSizeDown (stack* stk) {
 	stk->data--;
 	int newsize = (stk->capacity + 3) * sizeof (stk->data[0]);
 	printf ("realloc : %d\n", newsize);
-	stk->data = (type*) realloc (stk->data, (stk->capacity + 3) * sizeof (stk->data[0]));
+	stk->data = (type*) realloc (stk->data, (stk->capacity + 3) * sizeof (type));
 	// stk->data = (type*) realloc (stk->data, newsize);
 	stk->data[stk->capacity + 2] = canary;
 	stk->data++;
