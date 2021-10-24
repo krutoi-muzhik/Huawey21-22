@@ -55,14 +55,14 @@ int
 main () {
 	stack stk;
 	StackConstruct (&stk);
-	// for (int i = 1; i < 10; i++) {
-	// 	StackPush (&stk, i);
-	// 	// printf ("Pushed %d\n", i);
-	// }
+	for (int i = 1; i < 10; i++) {
+		StackPush (&stk, i);
+		printf ("Pushed %d\n", i);
+	}
 
-	// for (int i = 1; i < 10; i++) {
-	// 	printf ("Popped %d\n", StackPop (&stk));
-	// }
+	for (int i = 1; i < 10; i++) {
+		printf ("Popped %d\n", StackPop (&stk));
+	}
 
 	// printf ("stk->size = %ld  got size = %ld\n", stk.size, GetStackSize (&stk));
 	// printf ("stk->capacity = %ld  got capacity = %ld\n", stk.capacity, GetStackCapacity (&stk));
@@ -114,8 +114,8 @@ StackConstruct (stack *stk) {
 	*((canary_t *) stk->data) = canary;
 	*((unsigned long long *) (stk->data + sizeof (canary_t) + stk->capacity * sizeof (data_t))) = GetDataHash (stk);
 	*((canary_t *) (stk->data + sizeof (canary_t) + sizeof (data_t) * stk->capacity + sizeof (unsigned long long))) = canary;
-	stk->hash = GetStackHash (stk);
 	stk->data += sizeof (canary_t);
+	stk->hash = GetStackHash (stk);
 	return;
 }
 
@@ -153,9 +153,9 @@ StackSizedDown (stack *stk) {
 
 void
 StackPush (stack *stk, data_t value) {
-	// int error = StackError (stk);
-	// if (error)
-	// 	Dump (stk, error, __FUNCTION__, __LINE__);
+	int error = StackError (stk);
+	if (error)
+		Dump (stk, error, __FUNCTION__, __LINE__);
 
 	if (stk->size == stk->capacity)
 		StackSizeUp (stk);
@@ -186,7 +186,8 @@ StackPop (stack *stk) {
 size_t
 GetStackSize (stack *stk) {
 	size_t count = 0;
-	while (*((data_t *) (stk->data + count * sizeof (data_t))) != poison) {
+	while ((*((data_t *) (stk->data + count * sizeof (data_t))) != poison) && (count < stk->capacity)) {
+
 		count++;
 	}
 	return count;
@@ -213,12 +214,8 @@ StackError (stack *stk) {
 		return SIZE_ERROR;
 	if (stk->capacity != GetStackCapacity (stk))
 		return CAPACITY_ERROR;
-	stk->data -= sizeof (canary_t);
-	if (stk->hash != GetStackHash (stk)) {
-		stk->data += sizeof (canary_t);
+	if (stk->hash != GetStackHash (stk))
 		return STACK_HASH_ERROR;
-	}
-	stk->data += sizeof (canary_t);
 	if (*((unsigned long long *) (stk->data + stk->capacity * sizeof (data_t))) != GetDataHash (stk))
 		return DATA_HASH_ERROR;
 	return NO_ERRORS;
